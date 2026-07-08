@@ -1,3 +1,18 @@
+# to do 08/07 -------------------------------------------------------------
+# DONE try and fix time 
+
+# code for nice plot (facet wrap or plot on same plot)
+# instead of plotting wells separately, treat as replicates and plot an average value
+# plot all samples on same axes
+
+# DONE box plots for area under the curve 
+# stat tests (e.g. ANOVA), save to tables
+
+# push all to git hub 
+
+
+# load packages -----------------------------------------------------------
+
 library(tidyverse)
 library(readxl)
 library(dplyr)
@@ -192,25 +207,23 @@ data_average <- data_clean |>
   group_by(minutes, sample) |> 
   summarise(mean = mean(OD, na.rm = TRUE)) 
 
-ggplot(data = data_average, aes(x = minutes, y = mean, shape = sample))+
-  geom_point(size = 1)+
-  theme_minimal()
-# label the axes
-# put on a title
-# format the key
-
-
-# to do 08/07 -------------------------------------------------------------
-# DONE try and fix time 
-
-# code for nice plot (facet wrap or plot on same plot)
-  # instead of plotting wells separately, treat as replicates and plot an average value
-  # plot all samples on same axes
-
-# DONE box plots for area under the curve 
-# stat tests (e.g. ANOVA), save to tables
-
-# push all to git hub 
+ggplot(data = data_average, aes(x = minutes, y = mean, shape = sample, colour = sample))+
+  geom_point(size = 1) +
+  theme_minimal()+
+  labs(title = "Plate Reader Growth Curves",
+       x = "Minutes",
+       y = "OD600",
+       shape = "Sample",
+       colour = "Sample") +
+  scale_shape_discrete(labels = c("host"="Host",
+                                  "host-phage"="Host + Phage",
+                                  "LB"="LB",
+                                  "lys"="Lysogen"))+
+  scale_colour_discrete(labels = c("host"="Host",
+                                   "host-phage"="Host + Phage",
+                                   "LB"="LB",
+                                   "lys"="Lysogen"))+
+  theme(legend.title = element_text())
 
 
 # AUC ---------------------------------------------------------------------
@@ -232,13 +245,24 @@ auc_plot <- ggplot(data = data_well_auc, aes(x = sample, y = AUC, fill = sample)
        y = "Total AUC (OD600 x Minutes)")+
   scale_x_discrete(limits = c("host", "lys", "host-phage", "LB"),
                    labels = c("host" = "Host",
-                   "lys" = "Lysogen",
-                   "host-phage" = "Host + Phage",
-                   "LB" = "LB "))+
+                              "lys" = "Lysogen",
+                              "host-phage" = "Host + Phage",
+                              "LB" = "LB "))+
+  annotate("segment", x = 1, xend = 2,
+           y = 2600, yend = 2600,
+           colour = "black")+
+  annotate("text", x = 1.5, y = 2700,
+           label = glue::glue("italic(p==0.0203)"), parse = TRUE)+
+  annotate("segment", x = 2, xend = 3,
+           y = 2650, yend = 2650,
+           colour = "black")+
+  annotate("text", x = 2.5, y = 2750,
+           label = glue::glue("italic(p==0.0008)"), parse = TRUE)+
   theme(legend.position = "none")
 
 ggsave("plots/auc_plot.png", plot = auc_plot, width = 7, height = 5, dpi = 300)
 
+# not sure about this...
 
 # ANOVA -------------------------------------------------------------------
 # https://3mmarand.github.io/comp4biosci/one-way-anova-and-kw.html
